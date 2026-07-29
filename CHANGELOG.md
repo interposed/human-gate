@@ -28,6 +28,10 @@ First cut. Standalone, silent by default, no dependencies beyond the Go stdlib.
   walkthrough (`examples/hardware-tap.sh`); `make example-*` targets.
 - Fix: the route approver could report "refused" when the routed command wrote
   output (nil *os.File wired onto cmd.Stdout/Stderr); now only set when non-nil.
+- Vendored a patched go-libfido2 under third_party/ (replace directive): upstream
+  v1.5.3 statically links Homebrew openssl@1.1, which was removed in 2023; the
+  fork points the darwin cgo flags at openssl@3. Fixes `make bridge` on macOS.
+  Dropped the unexported Device.Close call.
 - CLI `biogate`: `start` (silent by default, `--logging on` opt-in, exec on
   approval), `verify`, `version`, and a `release` stub (not implemented).
 - nono adapter (`adapters/nono`): `GateLaunch`, plus wrapper / hook wiring notes.
