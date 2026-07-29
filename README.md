@@ -88,11 +88,29 @@ the interpose CLI (or anything), without bio-gate depending on interpose.
 |---|---|---|
 | `tty` | interactive terminal prompt | built in (dev default; the one non-silent method) |
 | `route` | shell out to an external command, exit code = decision | built in |
-| `fido2` | roaming hardware key (CTAP2 hmac-secret) | seam, planned |
-| `platform` | Touch ID / Windows Hello via WebAuthn | seam, planned |
+| `fido2` | external hardware key via the bridge, option B: the key signs the approval | works (needs `make bridge` + libfido2 + `biogate register`) |
+| `platform` | Touch ID / Windows Hello | not offered (needs a Secure Enclave entitlement we don't have) |
 
-The `fido2` / `platform` methods are the silent production path; the seams exist
-so callers can already select them.
+## Hardware keys (option B)
+
+The cgo `libfido2` dependency is isolated in a **separate helper**,
+`biogate-fido-bridge`, so the main binary stays pure-Go / static / Docker-safe.
+The main binary talks to the bridge over a Unix socket; the bridge talks raw
+CTAP2 to an external FIDO2 key over USB. **No Apple entitlement** (no Secure
+Enclave, no Endpoint Security).
+
+```sh
+brew install libfido2                 # or: apt install libfido2-dev
+make bridge                           # builds biogate-fido-bridge with -tags fido2
+./builds/bin/biogate-fido-bridge &    # run the helper
+biogate register --label yubikey      # one-time: touch your key to enroll it
+biogate start --method fido2 -- nono run claude   # each launch: a silent tap
+```
+
+On approval the key signs `hash(approval)`; the assertion **is** the proof
+(`WebAuthn` in the token, `KeyID` = the credential's public key). `biogate verify`
+checks it offline against the enrolled public key. Ed25519 credentials are the
+primary path; ES256 is supported best-effort.
 
 ## Build
 

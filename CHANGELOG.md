@@ -12,8 +12,13 @@ First cut. Standalone, silent by default, no dependencies beyond the Go stdlib.
 - `Verify` / `ParseToken` / `Marshal` for portable, self-verifying proof.
 - Approvers: `tty` (interactive dev default) and `route` (exec an external
   command, exit code = decision, e.g. route over the interpose CLI).
-- Seams for the silent production path: `fido2` and `platform` (Touch ID /
-  Windows Hello) return `ErrNotImplemented` for now.
+- Hardware keys (option B): `biogate register` enrolls an external FIDO2 key and
+  `--method fido2` makes the key sign each approval (the assertion is the proof,
+  `WebAuthn` in the token; verified offline against the enrolled public key,
+  Ed25519 + best-effort ES256). The cgo/libfido2 dependency is isolated in a
+  separate `biogate-fido-bridge` helper over a Unix socket, so the main binary
+  stays pure-Go / static. No Apple entitlement (no Secure Enclave / ES).
+  `platform` (Touch ID) is intentionally not offered. Build: `make bridge`.
 - Signer: **AAuth** is the CLI default (`github.com/aauth-dev/auth-go`) - every
   token embeds an `aa-agent+jwt` bound to the signing key; `VerifyIdentity`
   checks it. `--signer ed25519` keeps a dependency-free path. This is the dogfood

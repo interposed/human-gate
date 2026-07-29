@@ -31,10 +31,16 @@ help: ## Show this help
 	@echo ""
 	@echo "vars: VERSION=$(VERSION)  ARGS=\"$(ARGS)\"  TAG=$(TAG)"
 
-build: ## Build biogate into builds/bin
+build: ## Build biogate + the bridge (stub) into builds/bin (pure-Go)
 	@mkdir -p $(BIN)
 	$(GO) build -ldflags "$(LDFLAGS)" -o $(BIN)/biogate ./cmd/biogate
-	@echo "built $(BIN)/biogate"
+	$(GO) build -ldflags "$(LDFLAGS)" -o $(BIN)/biogate-fido-bridge ./cmd/biogate-fido-bridge
+	@echo "built $(BIN)/biogate (+ biogate-fido-bridge stub; run 'make bridge' for hardware)"
+
+bridge: ## Build the fido bridge WITH hardware support (-tags fido2; needs libfido2)
+	@mkdir -p $(BIN)
+	GOWORK=off GOTOOLCHAIN=auto go build -tags fido2 -ldflags "$(LDFLAGS)" -o $(BIN)/biogate-fido-bridge ./cmd/biogate-fido-bridge
+	@echo "built $(BIN)/biogate-fido-bridge (fido2). run it, then: biogate register"
 
 test: ## Run the test suite
 	$(GO) test ./...

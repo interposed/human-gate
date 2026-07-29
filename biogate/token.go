@@ -24,7 +24,21 @@ type ApprovalToken struct {
 	KeyID      string    `json:"key_id"`         // hex-encoded ed25519 public key
 	Nonce      string    `json:"nonce"`          // 128-bit random, hex
 	Agent      string    `json:"agent,omitempty"` // AAuth aa-agent+jwt binding this key to an agent identity (aauth signer)
-	Sig        string    `json:"sig,omitempty"`  // base64 ed25519 signature over the canonical payload
+	WebAuthn   *WebAuthnProof `json:"webauthn,omitempty"` // hardware-key assertion proof (fido2 approver, option B)
+	Sig        string    `json:"sig,omitempty"`  // base64 ed25519 signature over the canonical payload (aauth/ed25519 signers)
+}
+
+// WebAuthnProof is a CTAP2 assertion that a registered hardware key produced when
+// a human tapped it. The signature covers AuthData || ClientHash, where
+// ClientHash is sha256 of the approval's canonical core, so it binds the tap to
+// this exact approval. Self-contained: it carries the credential public key.
+type WebAuthnProof struct {
+	CredentialID []byte `json:"cred_id"`
+	PubKey       []byte `json:"pub_key"`
+	Alg          int    `json:"alg"` // COSE alg (-8 EdDSA, -7 ES256)
+	AuthData     []byte `json:"auth_data"`
+	ClientHash   []byte `json:"client_hash"`
+	Sig          []byte `json:"sig"`
 }
 
 // Errors from token verification.
@@ -43,10 +57,24 @@ func (t ApprovalToken) signingBytes() ([]byte, error) {
 	return json.Marshal(c)
 }
 
-// Verify checks the token's signature against the public key embedded in KeyID.
-// It proves integrity and authenticity, not trust: the caller decides whether
-// KeyID is a key it recognizes.
+// challengeCore is the canonical approval core that a hardware assertion binds:
+// the token with the proof/identity/signature fields cleared.
+func (t ApprovalToken) challengeCore() ([]byte, error) {
+	c := t
+	c.Sig = ""
+	c.Agent = ""
+	c.WebAuthn = nil
+	return json.Marshal(c)
+}
+
+// Verify checks the token's proof. For a hardware (WebAuthn) token it verifies
+// the assertion binds this approval; otherwise it verifies the detached ed25519
+// signature against the public key in KeyID. It proves integrity and
+// authenticity, not trust: the caller decides whether the key is recognized.
 func Verify(t *ApprovalToken) error {
+	if t.WebAuthn != nil {
+		return verifyWebAuthn(t)
+	}
 	pub, err := hex.DecodeString(t.KeyID)
 	if err != nil || len(pub) != ed25519.PublicKeySize {
 		return ErrBadToken

@@ -2,7 +2,10 @@ module github.com/interposed/nono-bio-gate
 
 go 1.26.0
 
-require github.com/aauth-dev/auth-go v0.1.1
+require (
+	github.com/aauth-dev/auth-go v0.1.1
+	github.com/keys-pub/go-libfido2 v1.5.3
+)
 
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
@@ -20,6 +23,7 @@ require (
 	github.com/lestrrat-go/jwx/v3 v3.0.12 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/lestrrat-go/option/v2 v2.0.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
 	github.com/valyala/fastjson v1.6.4 // indirect
 	github.com/yaronf/httpsign v0.5.1 // indirect

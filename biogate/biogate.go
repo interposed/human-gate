@@ -60,6 +60,15 @@ type Signer interface {
 	KeyID() string
 }
 
+// ProofApprover is an approver whose ceremony IS the proof: the act of approving
+// also produces the signed token (a hardware key signing the challenge). When a
+// selected approver implements this, RequireApproval uses it and skips the
+// separate Signer. The fido2 approver is the canonical example.
+type ProofApprover interface {
+	Approver
+	ApproveAndSign(ctx context.Context, req Request, at time.Time) (*ApprovalToken, error)
+}
+
 type config struct {
 	approvers map[Method]Approver
 	order     []Method
@@ -125,6 +134,9 @@ func RequireApproval(ctx context.Context, req Request, opts ...Option) (*Approva
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, req.Timeout)
 		defer cancel()
+	}
+	if pa, ok := a.(ProofApprover); ok {
+		return pa.ApproveAndSign(ctx, req, c.now())
 	}
 	if err := a.Approve(ctx, req); err != nil {
 		return nil, err

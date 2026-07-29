@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/interposed/nono-bio-gate/biogate"
+	"github.com/interposed/nono-bio-gate/biogate/bridge"
 )
 
 var version = "v0.1.0" // overridden at release via -ldflags
@@ -37,6 +38,8 @@ func main() {
 		os.Exit(runStart(args[1:]))
 	case "verify":
 		os.Exit(runVerify(args[1:]))
+	case "register":
+		os.Exit(runRegister(args[1:]))
 	case "release":
 		// stub: reserved, no functional task yet
 		fmt.Fprintln(os.Stderr, "biogate release: not implemented")
@@ -79,6 +82,7 @@ func runStart(args []string) int {
 		timeout  time.Duration
 		signerID = "aauth" // aauth | ed25519
 		identity string
+		sock     string // fido bridge socket (empty = default)
 	)
 	// tiny hand-rolled flag parse so "--logging on" reads naturally
 	for i := 0; i < len(flags); i++ {
@@ -110,6 +114,8 @@ func runStart(args []string) int {
 			signerID = next()
 		case "--identity":
 			identity = next()
+		case "--socket":
+			sock = next()
 		case "--out":
 			outPath = next()
 		case "--timeout":
@@ -189,7 +195,12 @@ func runStart(args []string) int {
 		}
 		opts = append(opts, biogate.WithApprover(biogate.NewExecApprover(biogate.MethodRoute, strings.Fields(route)...)))
 	case biogate.MethodFIDO2:
-		opts = append(opts, biogate.WithApprover(biogate.NewFIDO2Approver()))
+		reg, rerr := biogate.LoadRegistry(biogate.DefaultRegistryPath())
+		if rerr != nil {
+			fmt.Fprintln(os.Stderr, "biogate: registry:", rerr)
+			return 1
+		}
+		opts = append(opts, biogate.WithApprover(biogate.NewFIDO2Approver(sock, reg)))
 	case biogate.MethodPlatform:
 		opts = append(opts, biogate.WithApprover(biogate.NewPlatformApprover()))
 	case biogate.MethodTTY:
@@ -266,6 +277,75 @@ func runVerify(args []string) int {
 	return 0
 }
 
+func runRegister(args []string) int {
+	var (
+		sock    string
+		label   = "key-1"
+		pin     string
+		algStr  = "eddsa"
+		regPath = biogate.DefaultRegistryPath()
+	)
+	for i := 0; i < len(args); i++ {
+		next := func() string {
+			if i+1 < len(args) {
+				i++
+				return args[i]
+			}
+			return ""
+		}
+		switch args[i] {
+		case "--socket":
+			sock = next()
+		case "--label":
+			label = next()
+		case "--pin":
+			pin = next()
+		case "--alg":
+			algStr = next()
+		case "--registry":
+			regPath = next()
+		default:
+			fmt.Fprintln(os.Stderr, "biogate register: unknown flag:", args[i])
+			return 2
+		}
+	}
+	alg := bridge.AlgEdDSA
+	if algStr == "es256" {
+		alg = bridge.AlgES256
+	}
+
+	cli := bridge.NewClient(sock)
+	if err := cli.Ping(); err != nil {
+		fmt.Fprintln(os.Stderr, "biogate register:", err)
+		return 1
+	}
+	fmt.Fprintln(os.Stderr, "touch your security key to enroll it...")
+	resp, err := cli.Do(bridge.Request{
+		Op: bridge.OpRegister, RPID: biogate.DefaultRPID, RPName: "nono-bio-gate",
+		UserName: "biogate", PIN: pin, Alg: alg,
+	})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "biogate register:", err)
+		return 1
+	}
+	reg, err := biogate.LoadRegistry(regPath)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "biogate register:", err)
+		return 1
+	}
+	reg.Add(biogate.EnrolledKey{
+		Label: label, RPID: biogate.DefaultRPID,
+		CredentialID: resp.CredentialID, PubKey: resp.PubKey, Alg: resp.Alg,
+		AddedAt: time.Now(),
+	})
+	if err := reg.Save(regPath); err != nil {
+		fmt.Fprintln(os.Stderr, "biogate register:", err)
+		return 1
+	}
+	fmt.Printf("enrolled %q (alg %d) -> %s\n", label, resp.Alg, regPath)
+	return 0
+}
+
 func defaultKeyPath() string {
 	if x := os.Getenv("XDG_CONFIG_HOME"); x != "" {
 		return filepath.Join(x, "biogate", "key")
@@ -279,9 +359,13 @@ func usage(w io.Writer) {
 
 usage:
   biogate start [flags] [-- command args...]
+  biogate register [--label <name>] [--alg eddsa|es256] [--pin <pin>] [--socket <path>]
   biogate verify <token.json>
   biogate release            (stub: not implemented)
   biogate version
+
+register enrolls a hardware key via the biogate-fido-bridge helper (option B:
+the key signs each approval). start --method fido2 then taps that key.
 
 start flags:
   --logging on|off      enable logging (default off; nothing is printed otherwise)
