@@ -39,7 +39,15 @@ build: ## Build biogate + the bridge (stub) into builds/bin (pure-Go)
 
 bridge: ## Build the fido bridge WITH hardware support (-tags fido2; needs libfido2)
 	@mkdir -p $(BIN)
-	GOWORK=off GOTOOLCHAIN=auto go build -tags fido2 -ldflags "$(LDFLAGS)" -o $(BIN)/biogate-fido-bridge ./cmd/biogate-fido-bridge
+	@sh -c '\
+	  if command -v brew >/dev/null 2>&1; then \
+	    O=$$(brew --prefix openssl@3 2>/dev/null); F=$$(brew --prefix libfido2 2>/dev/null); \
+	    export PKG_CONFIG_PATH="$$F/lib/pkgconfig:$$O/lib/pkgconfig:$${PKG_CONFIG_PATH:-}"; \
+	    export CGO_CFLAGS="-I$$O/include -I$$F/include"; \
+	    export CGO_LDFLAGS="-L$$O/lib -L$$F/lib"; \
+	  fi; \
+	  GOWORK=off GOTOOLCHAIN=auto CGO_ENABLED=1 \
+	    go build -tags fido2 -ldflags "$(LDFLAGS)" -o $(BIN)/biogate-fido-bridge ./cmd/biogate-fido-bridge'
 	@echo "built $(BIN)/biogate-fido-bridge (fido2). run it, then: biogate register"
 
 test: ## Run the test suite
