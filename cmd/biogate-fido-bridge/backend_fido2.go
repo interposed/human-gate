@@ -8,7 +8,7 @@ import (
 
 	libfido2 "github.com/keys-pub/go-libfido2"
 
-	"github.com/interposed/nono-bio-gate/biogate/bridge"
+	"github.com/interposed/nono-biogate/biogate/bridge"
 )
 
 type fidoBackend struct{}

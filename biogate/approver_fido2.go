@@ -7,7 +7,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/interposed/nono-bio-gate/biogate/bridge"
+	"github.com/interposed/nono-biogate/biogate/bridge"
 )
 
 // DefaultRPID is the FIDO2 relying-party id bio-gate registers and asserts under.

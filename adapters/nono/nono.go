@@ -16,7 +16,7 @@ package nono
 import (
 	"context"
 
-	"github.com/interposed/nono-bio-gate/biogate"
+	"github.com/interposed/nono-biogate/biogate"
 )
 
 // GateLaunch requires approval before a nono agent launch and returns the signed

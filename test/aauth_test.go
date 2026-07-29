@@ -5,7 +5,7 @@ import (
 	"crypto/ed25519"
 	"testing"
 
-	"github.com/interposed/nono-bio-gate/biogate"
+	"github.com/interposed/nono-biogate/biogate"
 )
 
 func TestAAuthSignerIdentity(t *testing.T) {

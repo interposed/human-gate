@@ -21,8 +21,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/interposed/nono-bio-gate/biogate"
-	"github.com/interposed/nono-bio-gate/biogate/bridge"
+	"github.com/interposed/nono-biogate/biogate"
+	"github.com/interposed/nono-biogate/biogate/bridge"
 )
 
 var version = "v0.1.0" // overridden at release via -ldflags

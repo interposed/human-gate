@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/interposed/nono-bio-gate/biogate"
-	"github.com/interposed/nono-bio-gate/biogate/bridge"
+	"github.com/interposed/nono-biogate/biogate"
+	"github.com/interposed/nono-biogate/biogate/bridge"
 )
 
 // mockApprover auto-approves (or returns err) under the "mock" method, so tests

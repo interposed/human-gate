@@ -5,7 +5,7 @@ package main
 import (
 	"errors"
 
-	"github.com/interposed/nono-bio-gate/biogate/bridge"
+	"github.com/interposed/nono-biogate/biogate/bridge"
 )
 
 var errNotBuilt = errors.New("biogate-fido-bridge built without libfido2; rebuild with -tags fido2 (brew install libfido2 / apt install libfido2-dev)")

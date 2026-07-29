@@ -1,4 +1,4 @@
-module github.com/interposed/nono-bio-gate
+module github.com/interposed/nono-biogate
 
 go 1.26.0
 

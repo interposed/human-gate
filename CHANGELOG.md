@@ -3,9 +3,10 @@
 All notable changes to nono-bio-gate. Each released version is retained under
 `builds/releases/<version>/`.
 
-## v0.1.0 (unreleased)
+## v0.1.0
 
-First cut. Standalone, silent by default, no dependencies beyond the Go stdlib.
+First cut. Standalone, silent by default. Hardware path (external FIDO2 key,
+Ed25519) validated end-to-end on real hardware: register + tap + offline verify.
 
 - `biogate.RequireApproval` primitive: run one approval ceremony, return a signed
   ed25519 `ApprovalToken` (who, what, when, key id) or `ErrRefused`.

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/interposed/nono-bio-gate/biogate"
+	"github.com/interposed/nono-biogate/biogate"
 )
 
 func main() {

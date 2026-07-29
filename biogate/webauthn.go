@@ -10,7 +10,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/interposed/nono-bio-gate/biogate/bridge"
+	"github.com/interposed/nono-biogate/biogate/bridge"
 )
 
 // verifyWebAuthn checks a hardware-key ApprovalToken: the assertion's challenge

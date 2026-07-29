@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/interposed/nono-bio-gate/biogate/bridge"
+	"github.com/interposed/nono-biogate/biogate/bridge"
 )
 
 // backend performs the actual FIDO2 operations. Implemented by the fido2-tagged

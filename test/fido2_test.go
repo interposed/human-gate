@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/interposed/nono-bio-gate/biogate"
-	"github.com/interposed/nono-bio-gate/biogate/bridge"
+	"github.com/interposed/nono-biogate/biogate"
+	"github.com/interposed/nono-biogate/biogate/bridge"
 )
 
 // Exercises the whole hardware path end to end through the public API, against
