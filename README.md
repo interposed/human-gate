@@ -32,6 +32,23 @@ The `ApprovalToken` is self-describing: `KeyID` is the public key, so any holder
 can check the signature. Whether to *trust* that key is a separate, caller-side
 decision.
 
+## Proof & identity
+
+By default the CLI signs with **AAuth** ([`github.com/aauth-dev/auth-go`](https://github.com/aauth-dev/auth-go)):
+every token carries an `aa-agent+jwt` that binds the signing key to an agent
+identity, alongside a detached signature over the approval payload, both under one
+Ed25519 key.
+
+```go
+signer, _ := biogate.NewAAuthSigner("aauth:biogate@host", priv)
+tok, _ := biogate.RequireApproval(ctx, req, biogate.WithSigner(signer))
+claims, _ := biogate.VerifyIdentity(ctx, tok) // proves AAuth identity + binding
+```
+
+`biogate.NewEd25519Signer(priv)` is the dependency-free path if you don't want the
+identity layer. This is the dogfood seam: the same AAuth identity the interpose
+broker adopts, exercised here first.
+
 ## CLI
 
 Silent by default; nothing is printed unless you ask for logs.

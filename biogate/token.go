@@ -23,6 +23,7 @@ type ApprovalToken struct {
 	ApprovedAt time.Time `json:"approved_at"`
 	KeyID      string    `json:"key_id"`         // hex-encoded ed25519 public key
 	Nonce      string    `json:"nonce"`          // 128-bit random, hex
+	Agent      string    `json:"agent,omitempty"` // AAuth aa-agent+jwt binding this key to an agent identity (aauth signer)
 	Sig        string    `json:"sig,omitempty"`  // base64 ed25519 signature over the canonical payload
 }
 
@@ -30,6 +31,7 @@ type ApprovalToken struct {
 var (
 	ErrBadToken     = errors.New("biogate: malformed token")
 	ErrBadSignature = errors.New("biogate: signature does not verify")
+	ErrNoIdentity   = errors.New("biogate: token carries no AAuth agent identity")
 )
 
 // signingBytes is the canonical payload the signature covers: the token with an

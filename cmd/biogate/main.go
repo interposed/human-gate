@@ -69,14 +69,16 @@ func runStart(args []string) int {
 	var (
 		logging = "off"
 		logFile string
-		method  = string(biogate.MethodTTY)
-		route   string
-		action  = "launch"
-		subject string
-		detail  string
-		keyPath = defaultKeyPath()
-		outPath string
-		timeout time.Duration
+		method   = string(biogate.MethodTTY)
+		route    string
+		action   = "launch"
+		subject  string
+		detail   string
+		keyPath  = defaultKeyPath()
+		outPath  string
+		timeout  time.Duration
+		signerID = "aauth" // aauth | ed25519
+		identity string
 	)
 	// tiny hand-rolled flag parse so "--logging on" reads naturally
 	for i := 0; i < len(flags); i++ {
@@ -104,6 +106,10 @@ func runStart(args []string) int {
 			detail = next()
 		case "--key":
 			keyPath = next()
+		case "--signer":
+			signerID = next()
+		case "--identity":
+			identity = next()
 		case "--out":
 			outPath = next()
 		case "--timeout":
@@ -145,11 +151,33 @@ func runStart(args []string) int {
 		return 2
 	}
 
-	signer, err := biogate.LoadOrCreateSigner(keyPath)
+	key, err := biogate.LoadOrCreateKey(keyPath)
 	if err != nil {
-		log("signer error: %v", err)
+		log("key error: %v", err)
 		fmt.Fprintln(os.Stderr, "biogate: key:", err)
 		return 1
+	}
+	var signer biogate.Signer
+	switch signerID {
+	case "aauth", "":
+		if identity == "" {
+			host, _ := os.Hostname()
+			if host == "" {
+				host = "local"
+			}
+			identity = "aauth:biogate@" + host
+		}
+		signer, err = biogate.NewAAuthSigner(identity, key)
+		if err != nil {
+			log("aauth signer error: %v", err)
+			fmt.Fprintln(os.Stderr, "biogate: aauth:", err)
+			return 1
+		}
+	case "ed25519":
+		signer = biogate.NewEd25519Signer(key)
+	default:
+		fmt.Fprintln(os.Stderr, "biogate: unknown --signer:", signerID)
+		return 2
 	}
 
 	opts := []biogate.Option{biogate.WithSigner(signer)}
@@ -265,6 +293,8 @@ start flags:
   --subject <name>      what is approved (default: the -- command)
   --detail <text>       human-readable context
   --key <path>          signer key file (default ~/.config/biogate/key)
+  --signer aauth|ed25519  proof type (default aauth: mints an AAuth aa-agent+jwt)
+  --identity <id>       AAuth agent id (default aauth:biogate@<hostname>)
   --out <path>          write the signed approval token here
   --timeout <dur>       ceremony timeout, e.g. 30s
 `)

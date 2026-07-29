@@ -27,20 +27,19 @@ func NewEphemeralSigner() (Signer, error) {
 	return &ed25519Signer{priv: priv, keyID: hex.EncodeToString(pub)}, nil
 }
 
-// LoadOrCreateSigner loads an ed25519 seed from path, creating it (0600) if it
-// does not exist. The parent directory is created if needed.
-func LoadOrCreateSigner(path string) (Signer, error) {
+// LoadOrCreateKey loads an ed25519 seed from path, creating it (0600) if it does
+// not exist. The parent directory is created if needed. The same key backs both
+// the plain ed25519 signer and the AAuth signer.
+func LoadOrCreateKey(path string) (ed25519.PrivateKey, error) {
 	if b, err := os.ReadFile(path); err == nil {
 		if len(b) != ed25519.SeedSize {
 			return nil, errors.New("biogate: key file has wrong size")
 		}
-		priv := ed25519.NewKeyFromSeed(b)
-		pub := priv.Public().(ed25519.PublicKey)
-		return &ed25519Signer{priv: priv, keyID: hex.EncodeToString(pub)}, nil
+		return ed25519.NewKeyFromSeed(b), nil
 	} else if !os.IsNotExist(err) {
 		return nil, err
 	}
-	pub, priv, err := ed25519.GenerateKey(nil)
+	_, priv, err := ed25519.GenerateKey(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +49,23 @@ func LoadOrCreateSigner(path string) (Signer, error) {
 	if err := os.WriteFile(path, priv.Seed(), 0o600); err != nil {
 		return nil, err
 	}
-	return &ed25519Signer{priv: priv, keyID: hex.EncodeToString(pub)}, nil
+	return priv, nil
+}
+
+// NewEd25519Signer wraps an existing key as a plain, dependency-free signer.
+func NewEd25519Signer(priv ed25519.PrivateKey) Signer {
+	pub := priv.Public().(ed25519.PublicKey)
+	return &ed25519Signer{priv: priv, keyID: hex.EncodeToString(pub)}
+}
+
+// LoadOrCreateSigner loads (or creates) a key at path and returns a plain
+// ed25519 signer over it.
+func LoadOrCreateSigner(path string) (Signer, error) {
+	priv, err := LoadOrCreateKey(path)
+	if err != nil {
+		return nil, err
+	}
+	return NewEd25519Signer(priv), nil
 }
 
 func (s *ed25519Signer) KeyID() string { return s.keyID }
