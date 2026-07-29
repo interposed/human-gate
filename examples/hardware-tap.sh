@@ -28,12 +28,12 @@ sleep 0.6
 
 echo
 echo "==> STEP 1: enroll your key  (TOUCH it when it blinks)"
-"$BIN/biogate" register --label my-key --socket "$SOCK" "${PIN_ARGS[@]}"
+"$BIN/biogate" register --label my-key --socket "$SOCK" ${PIN_ARGS[@]+"${PIN_ARGS[@]}"}
 
 echo
 echo "==> STEP 2: gate an approval  (TOUCH your key again)"
 "$BIN/biogate" start --method fido2 --subject claude-code \
-  --socket "$SOCK" --out "$TOKEN" --logging on "${PIN_ARGS[@]}"
+  --socket "$SOCK" --out "$TOKEN" --logging on ${PIN_ARGS[@]+"${PIN_ARGS[@]}"}
 
 echo
 echo "==> STEP 3: verify the signed approval (offline, no device)"
