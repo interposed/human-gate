@@ -43,7 +43,6 @@ func (fidoBackend) register(req bridge.Request) ([]byte, []byte, int, error) {
 	if err != nil {
 		return nil, nil, 0, err
 	}
-	defer d.Close()
 
 	cdh := req.Challenge
 	if len(cdh) != 32 {
@@ -77,7 +76,6 @@ func (fidoBackend) assert(req bridge.Request) ([]byte, []byte, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	defer d.Close()
 
 	assn, err := d.Assertion(req.RPID, req.Challenge, [][]byte{req.CredentialID}, req.PIN,
 		&libfido2.AssertionOpts{UP: libfido2.True})
