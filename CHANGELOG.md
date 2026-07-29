@@ -24,6 +24,10 @@ First cut. Standalone, silent by default, no dependencies beyond the Go stdlib.
   checks it. `--signer ed25519` keeps a dependency-free path. This is the dogfood
   seam toward the interpose broker.
 - LICENSE: full Apache-2.0 text.
+- examples/: terminal tap, route approver, Go library, and a one-shot hardware
+  walkthrough (`examples/hardware-tap.sh`); `make example-*` targets.
+- Fix: the route approver could report "refused" when the routed command wrote
+  output (nil *os.File wired onto cmd.Stdout/Stderr); now only set when non-nil.
 - CLI `biogate`: `start` (silent by default, `--logging on` opt-in, exec on
   approval), `verify`, `version`, and a `release` stub (not implemented).
 - nono adapter (`adapters/nono`): `GateLaunch`, plus wrapper / hook wiring notes.

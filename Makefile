@@ -80,6 +80,18 @@ release: test ## Cross-compile and retain builds/releases/<VERSION>
 clean: ## Remove dev builds and the PID file
 	rm -rf $(BIN)
 
+## ---- examples ----
+.PHONY: example-route example-hardware example-library
+
+example-route: build ## Gate an approval routed to examples/route-approver.sh
+	$(BIN)/biogate start --method route --route "examples/route-approver.sh" --subject claude-code -- echo launched
+
+example-library: ## Run the Go library example
+	$(GO) run ./examples/library
+
+example-hardware: ## Full hardware-key walkthrough (needs libfido2 + a key)
+	./examples/hardware-tap.sh
+
 ## ---- docker ----
 .PHONY: docker-build docker-run docker-start docker-stop docker-logs docker-shell
 

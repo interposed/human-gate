@@ -47,8 +47,15 @@ func (e ExecApprover) Approve(ctx context.Context, req Request) error {
 		"BIOGATE_SUBJECT="+req.Subject,
 		"BIOGATE_DETAIL="+req.Detail,
 	)
-	cmd.Stdout = e.Stdout
-	cmd.Stderr = e.Stderr
+	// Only wire these when non-nil: assigning a nil *os.File to the io.Writer
+	// fields would make a non-nil interface over a nil pointer, and os/exec would
+	// fail every time the routed command writes output. nil => /dev/null.
+	if e.Stdout != nil {
+		cmd.Stdout = e.Stdout
+	}
+	if e.Stderr != nil {
+		cmd.Stderr = e.Stderr
+	}
 	if err := cmd.Run(); err != nil {
 		return ErrRefused
 	}
