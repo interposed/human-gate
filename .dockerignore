@@ -1,0 +1,7 @@
+builds/
+.git/
+brainstorming.md
+*.key
+*.token
+approval*.json
+.DS_Store

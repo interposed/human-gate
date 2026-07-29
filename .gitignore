@@ -1,0 +1,23 @@
+# transient dev builds
+/builds/bin/
+
+# release artifacts are retained locally per-version, but binaries are not
+# committed. The checksums file is the tracked release record.
+/builds/releases/*/biogate-*
+
+# private strategy / idea base, not for the public repo
+/brainstorming.md
+
+# local signer keys and emitted tokens
+*.key
+/key
+*.token
+approval*.json
+
+# go / editor / os cruft
+*.out
+*.test
+coverage*.out
+.DS_Store
+.idea/
+.vscode/
