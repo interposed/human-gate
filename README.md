@@ -1,5 +1,7 @@
 # nono-bio-gate
 
+[![govulncheck](https://github.com/interposed/nono-biogate/actions/workflows/govulncheck.yml/badge.svg)](https://github.com/interposed/nono-biogate/actions/workflows/govulncheck.yml)
+
 A small, standalone **hardware / biometric approval gate** for [nono](https://nono.sh)
 and any agent runner. It does one thing:
 

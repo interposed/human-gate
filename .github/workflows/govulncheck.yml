@@ -1,0 +1,28 @@
+name: govulncheck
+
+# Scan this module and its dependencies for known vulnerabilities. Runs on every
+# push and pull request, plus weekly to catch newly-disclosed advisories in code
+# that hasn't changed. The README badge reflects the latest run.
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '19 6 * * 1'   # Mondays 06:19 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  govulncheck:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - name: govulncheck ./...
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
