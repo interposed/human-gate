@@ -1,4 +1,6 @@
-# nono-bio-gate
+# nono-biogate
+
+[![govulncheck](https://github.com/interposed/nono-biogate/actions/workflows/govulncheck.yml/badge.svg)](https://github.com/interposed/nono-biogate/actions/workflows/govulncheck.yml)
 
 A small, standalone **hardware / biometric approval gate** for [nono](https://nono.sh)
 and any agent runner. It does one thing:
@@ -16,7 +18,7 @@ decision over an external CLI) plug in through clean seams.
 ## Library
 
 ```go
-import "github.com/interposed/nono-bio-gate/biogate"
+import "github.com/interposed/nono-biogate/biogate"
 
 tok, err := biogate.RequireApproval(ctx, biogate.Request{
     Action:  "launch",
@@ -72,9 +74,9 @@ biogate verify approval.json
 
 Two ways, standalone for **any** nono user:
 
-1. **Wrapper** (works today, needs nothing from nono) — gate the launch, then run
+1. **Wrapper** (works today, needs nothing from nono) - gate the launch, then run
    nono: `biogate start -- nono run <agent>`.
-2. **Hook** (preferred, if nono exposes an approval/event hook) — point nono at
+2. **Hook** (preferred, if nono exposes an approval/event hook) - point nono at
    `biogate start ...` as the approver. bio-gate stays silent and signals its
    decision by **exit code** (0 approve, non-zero refuse), so it drops into any
    exec-style hook. Whether nono has such a hook is an open research item.
@@ -128,8 +130,8 @@ Each release is retained under `builds/releases/<version>/`. Binaries stay local
 ## Docker
 
 ```sh
-docker build -t nono-bio-gate .
-docker run --rm nono-bio-gate version
+docker build -t nono-biogate .
+docker run --rm nono-biogate version
 ```
 
 Built on `aauth` primitives, developed in the open. See `CHANGELOG.md`.
