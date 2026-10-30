@@ -5,10 +5,10 @@ package main
 import (
 	"errors"
 
-	"github.com/interposed/nono-biogate/biogate/bridge"
+	"github.com/interposed/human-gate/humangate/bridge"
 )
 
-var errNotBuilt = errors.New("biogate-fido-bridge built without libfido2; rebuild with -tags fido2 (brew install libfido2 / apt install libfido2-dev)")
+var errNotBuilt = errors.New("humangate-fido-bridge built without libfido2; rebuild with -tags fido2 (brew install libfido2 / apt install libfido2-dev)")
 
 type stubBackend struct{}
 

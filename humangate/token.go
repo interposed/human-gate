@@ -1,4 +1,4 @@
-package biogate
+package humangate
 
 import (
 	"crypto/ed25519"
@@ -43,9 +43,9 @@ type WebAuthnProof struct {
 
 // Errors from token verification.
 var (
-	ErrBadToken     = errors.New("biogate: malformed token")
-	ErrBadSignature = errors.New("biogate: signature does not verify")
-	ErrNoIdentity   = errors.New("biogate: token carries no AAuth agent identity")
+	ErrBadToken     = errors.New("humangate: malformed token")
+	ErrBadSignature = errors.New("humangate: signature does not verify")
+	ErrNoIdentity   = errors.New("humangate: token carries no AAuth agent identity")
 )
 
 // signingBytes is the canonical payload the signature covers: the token with an
@@ -91,6 +91,29 @@ func Verify(t *ApprovalToken) error {
 		return ErrBadSignature
 	}
 	return nil
+}
+
+// SignerKey returns the token's effective ed25519 signing identity, the key a
+// verifier binds against a known set of owner keys. It handles both token
+// shapes:
+//
+//   - an ed25519/aauth token (Sig + KeyID): the ed25519 public key in KeyID;
+//   - a WebAuthn/fido2 token (ApproveAndSign, no top-level Sig): the credential
+//     public key in WebAuthn.PubKey, when that credential is an EdDSA (Ed25519)
+//     key (COSE alg -8). An ES256 (P-256) credential is a valid key but not an
+//     ed25519 identity, so this returns an error rather than a false match.
+//
+// It does NOT itself verify the token: call Verify first. The error cases are a
+// malformed KeyID and a non-Ed25519 credential.
+func (t *ApprovalToken) SignerKey() (ed25519.PublicKey, error) {
+	if t.WebAuthn != nil {
+		return webAuthnEd25519Key(t.WebAuthn)
+	}
+	raw, err := hex.DecodeString(t.KeyID)
+	if err != nil || len(raw) != ed25519.PublicKeySize {
+		return nil, ErrBadToken
+	}
+	return ed25519.PublicKey(raw), nil
 }
 
 // Marshal renders the token as indented JSON.

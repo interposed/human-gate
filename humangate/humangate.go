@@ -1,4 +1,4 @@
-// Package biogate gets a hardware or biometric approval from a real person and
+// Package humangate gets a hardware or biometric approval from a real person and
 // returns signed proof of it. One primitive: RequireApproval.
 //
 // It is deliberately standalone. It needs no account, no network, and nothing
@@ -6,7 +6,7 @@
 // in, so `go get` and one call is enough. Richer methods (roaming FIDO2 keys,
 // platform biometrics, or routing the decision over an external CLI) plug in
 // through the Approver and Signer seams without changing callers.
-package biogate
+package humangate
 
 import (
 	"context"
@@ -40,8 +40,8 @@ type Request struct {
 
 // Errors returned by RequireApproval.
 var (
-	ErrRefused  = errors.New("biogate: approval refused")
-	ErrNoMethod = errors.New("biogate: no approval method available for request")
+	ErrRefused  = errors.New("humangate: approval refused")
+	ErrNoMethod = errors.New("humangate: no approval method available for request")
 )
 
 // Approver performs one approval ceremony. Backends (terminal, exec/route,

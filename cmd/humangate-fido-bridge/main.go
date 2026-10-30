@@ -1,5 +1,5 @@
-// Command biogate-fido-bridge owns the cgo/libfido2 dependency and USB CTAP2
-// access so the main biogate binary stays pure-Go. It listens on a Unix socket
+// Command humangate-fido-bridge owns the cgo/libfido2 dependency and USB CTAP2
+// access so the main humangate binary stays pure-Go. It listens on a Unix socket
 // and answers register/assert requests. Talking raw CTAP2 to an external FIDO2
 // key needs no Apple entitlement (no Secure Enclave, no Endpoint Security).
 //
@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/interposed/nono-biogate/biogate/bridge"
+	"github.com/interposed/human-gate/humangate/bridge"
 )
 
 // backend performs the actual FIDO2 operations. Implemented by the fido2-tagged
@@ -32,7 +32,7 @@ type backend interface {
 	assert(req bridge.Request) (authData, sig []byte, err error)
 }
 
-var errUnknownOp = errors.New("biogate-fido-bridge: unknown op")
+var errUnknownOp = errors.New("humangate-fido-bridge: unknown op")
 
 func main() {
 	sock := bridge.DefaultSocketPath()
@@ -48,7 +48,7 @@ func main() {
 		case "--quiet":
 			quiet = true
 		case "-h", "--help":
-			os.Stdout.WriteString("usage: biogate-fido-bridge [--socket <path>] [--quiet]\n")
+			os.Stdout.WriteString("usage: humangate-fido-bridge [--socket <path>] [--quiet]\n")
 			return
 		}
 	}
@@ -60,11 +60,11 @@ func main() {
 	_ = os.Remove(sock)
 	ln, err := net.Listen("unix", sock)
 	if err != nil {
-		log.Fatalf("biogate-fido-bridge: listen %s: %v", sock, err)
+		log.Fatalf("humangate-fido-bridge: listen %s: %v", sock, err)
 	}
 	defer os.Remove(sock)
 	if !quiet {
-		log.Printf("biogate-fido-bridge listening on %s", sock)
+		log.Printf("humangate-fido-bridge listening on %s", sock)
 	}
 
 	sig := make(chan os.Signal, 1)

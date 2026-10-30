@@ -1,4 +1,4 @@
-# nono-bio-gate. Built with Go 1.26 (auto-downloaded via the go directive).
+# human-gate. Built with Go 1.26 (auto-downloaded via the go directive).
 # Never build to the repo root: dev builds land in builds/bin, releases are
 # retained per-version under builds/releases/<version>/.
 #
@@ -6,7 +6,7 @@
 
 BIN       := builds/bin
 DIST      := builds/releases
-PID       := $(BIN)/biogate.pid
+PID       := $(BIN)/humangate.pid
 VERSION   ?= v0.1.0
 ARGS      ?= start
 LDFLAGS   := -s -w -X main.version=$(VERSION)
@@ -15,9 +15,9 @@ LDFLAGS   := -s -w -X main.version=$(VERSION)
 # GOTOOLCHAIN=auto lets `go 1.26.0` in go.mod fetch the 1.26 toolchain.
 GO        := GOWORK=off GOTOOLCHAIN=auto go
 
-IMAGE     := nono-bio-gate
+IMAGE     := human-gate
 TAG       ?= $(VERSION)
-CONTAINER := nono-bio-gate
+CONTAINER := human-gate
 
 .DEFAULT_GOAL := help
 
@@ -25,17 +25,17 @@ CONTAINER := nono-bio-gate
 .PHONY: help build test run start stop status install fmt vet tidy release clean
 
 help: ## Show this help
-	@echo "nono-bio-gate - make targets:"
+	@echo "human-gate - make targets:"
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) \
 	  | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 	@echo "vars: VERSION=$(VERSION)  ARGS=\"$(ARGS)\"  TAG=$(TAG)"
 
-build: ## Build biogate + the bridge (stub) into builds/bin (pure-Go)
+build: ## Build humangate + the bridge (stub) into builds/bin (pure-Go)
 	@mkdir -p $(BIN)
-	$(GO) build -ldflags "$(LDFLAGS)" -o $(BIN)/biogate ./cmd/biogate
-	$(GO) build -ldflags "$(LDFLAGS)" -o $(BIN)/biogate-fido-bridge ./cmd/biogate-fido-bridge
-	@echo "built $(BIN)/biogate (+ biogate-fido-bridge stub; run 'make bridge' for hardware)"
+	$(GO) build -ldflags "$(LDFLAGS)" -o $(BIN)/humangate ./cmd/humangate
+	$(GO) build -ldflags "$(LDFLAGS)" -o $(BIN)/humangate-fido-bridge ./cmd/humangate-fido-bridge
+	@echo "built $(BIN)/humangate (+ humangate-fido-bridge stub; run 'make bridge' for hardware)"
 
 bridge: ## Build the fido bridge WITH hardware support (-tags fido2; needs libfido2)
 	@mkdir -p $(BIN)
@@ -47,26 +47,26 @@ bridge: ## Build the fido bridge WITH hardware support (-tags fido2; needs libfi
 	    export CGO_LDFLAGS="-L$$O/lib -L$$F/lib"; \
 	  fi; \
 	  GOWORK=off GOTOOLCHAIN=auto CGO_ENABLED=1 \
-	    go build -tags fido2 -ldflags "$(LDFLAGS)" -o $(BIN)/biogate-fido-bridge ./cmd/biogate-fido-bridge'
-	@echo "built $(BIN)/biogate-fido-bridge (fido2). run it, then: biogate register"
+	    go build -tags fido2 -ldflags "$(LDFLAGS)" -o $(BIN)/humangate-fido-bridge ./cmd/humangate-fido-bridge'
+	@echo "built $(BIN)/humangate-fido-bridge (fido2). run it, then: humangate register"
 
 test: ## Run the test suite
 	$(GO) test ./...
 
 run: build ## Build and run in the foreground (ARGS="start -- echo hi")
-	$(BIN)/biogate $(ARGS)
+	$(BIN)/humangate $(ARGS)
 
-start: build ## Start biogate in the background (writes a PID file)
-	@$(BIN)/biogate $(ARGS) & echo $$! > $(PID); echo "started pid $$(cat $(PID)) [$(ARGS)]"
+start: build ## Start humangate in the background (writes a PID file)
+	@$(BIN)/humangate $(ARGS) & echo $$! > $(PID); echo "started pid $$(cat $(PID)) [$(ARGS)]"
 
-stop: ## Stop the background biogate
+stop: ## Stop the background humangate
 	@if [ -f $(PID) ]; then kill $$(cat $(PID)) 2>/dev/null && echo "stopped $$(cat $(PID))"; rm -f $(PID); else echo "not running"; fi
 
-status: ## Show whether the background biogate is running
+status: ## Show whether the background humangate is running
 	@if [ -f $(PID) ] && kill -0 $$(cat $(PID)) 2>/dev/null; then echo "running pid $$(cat $(PID))"; else echo "stopped"; fi
 
-install: ## go install biogate to GOBIN
-	$(GO) install -ldflags "$(LDFLAGS)" ./cmd/biogate
+install: ## go install humangate to GOBIN
+	$(GO) install -ldflags "$(LDFLAGS)" ./cmd/humangate
 
 fmt: ## gofmt the tree
 	$(GO) fmt ./...
@@ -79,10 +79,10 @@ tidy: ## go mod tidy
 
 release: test ## Cross-compile and retain builds/releases/<VERSION>
 	@mkdir -p $(DIST)/$(VERSION)
-	GOWORK=off GOTOOLCHAIN=auto CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o $(DIST)/$(VERSION)/biogate-darwin-arm64 ./cmd/biogate
-	GOWORK=off GOTOOLCHAIN=auto CGO_ENABLED=0 GOOS=linux  GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o $(DIST)/$(VERSION)/biogate-linux-amd64  ./cmd/biogate
-	GOWORK=off GOTOOLCHAIN=auto CGO_ENABLED=0 GOOS=linux  GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o $(DIST)/$(VERSION)/biogate-linux-arm64  ./cmd/biogate
-	cd $(DIST)/$(VERSION) && shasum -a 256 biogate-* > checksums.sha256
+	GOWORK=off GOTOOLCHAIN=auto CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o $(DIST)/$(VERSION)/humangate-darwin-arm64 ./cmd/humangate
+	GOWORK=off GOTOOLCHAIN=auto CGO_ENABLED=0 GOOS=linux  GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o $(DIST)/$(VERSION)/humangate-linux-amd64  ./cmd/humangate
+	GOWORK=off GOTOOLCHAIN=auto CGO_ENABLED=0 GOOS=linux  GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o $(DIST)/$(VERSION)/humangate-linux-arm64  ./cmd/humangate
+	cd $(DIST)/$(VERSION) && shasum -a 256 humangate-* > checksums.sha256
 	@echo "released $(VERSION) -> $(DIST)/$(VERSION)"
 
 clean: ## Remove dev builds and the PID file
@@ -92,7 +92,7 @@ clean: ## Remove dev builds and the PID file
 .PHONY: example-route example-hardware example-library
 
 example-route: build ## Gate an approval routed to examples/route-approver.sh
-	$(BIN)/biogate start --method route --route "examples/route-approver.sh" --subject claude-code -- echo launched
+	$(BIN)/humangate start --method route --route "examples/route-approver.sh" --subject claude-code -- echo launched
 
 example-library: ## Run the Go library example
 	$(GO) run ./examples/library

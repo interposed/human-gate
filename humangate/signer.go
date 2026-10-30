@@ -1,4 +1,4 @@
-package biogate
+package humangate
 
 import (
 	"crypto/ed25519"
@@ -33,7 +33,7 @@ func NewEphemeralSigner() (Signer, error) {
 func LoadOrCreateKey(path string) (ed25519.PrivateKey, error) {
 	if b, err := os.ReadFile(path); err == nil {
 		if len(b) != ed25519.SeedSize {
-			return nil, errors.New("biogate: key file has wrong size")
+			return nil, errors.New("humangate: key file has wrong size")
 		}
 		return ed25519.NewKeyFromSeed(b), nil
 	} else if !os.IsNotExist(err) {

@@ -1,4 +1,4 @@
-package biogate
+package humangate
 
 import (
 	"context"
@@ -7,14 +7,14 @@ import (
 	"errors"
 	"time"
 
-	"github.com/interposed/nono-biogate/biogate/bridge"
+	"github.com/interposed/human-gate/humangate/bridge"
 )
 
-// DefaultRPID is the FIDO2 relying-party id bio-gate registers and asserts under.
-const DefaultRPID = "biogate.local"
+// DefaultRPID is the FIDO2 relying-party id human-gate registers and asserts under.
+const DefaultRPID = "humangate.local"
 
 // ErrNotImplemented marks a seam that is designed but not yet built.
-var ErrNotImplemented = errors.New("biogate: approval method not implemented yet")
+var ErrNotImplemented = errors.New("humangate: approval method not implemented yet")
 
 // fido2Approver is the silent hardware path (option B): it asks the fido-bridge
 // helper to sign the approval challenge with an enrolled key. The tap IS the
@@ -27,7 +27,7 @@ type fido2Approver struct {
 }
 
 // NewFIDO2Approver returns the hardware-key approver. sock is the bridge socket
-// (empty = default); reg holds the enrolled keys (run `biogate register` first).
+// (empty = default); reg holds the enrolled keys (run `humangate register` first).
 func NewFIDO2Approver(sock string, reg *KeyRegistry) Approver {
 	return &fido2Approver{client: bridge.NewClient(sock), reg: reg, rpID: DefaultRPID}
 }
