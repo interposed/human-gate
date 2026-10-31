@@ -2,8 +2,8 @@
 
 [![govulncheck](https://github.com/interposed/human-gate/actions/workflows/govulncheck.yml/badge.svg)](https://github.com/interposed/human-gate/actions/workflows/govulncheck.yml)
 
-A small, standalone **hardware / biometric approval gate** for [nono](https://nono.sh)
-and any agent runner. It does one thing:
+A small, standalone **hardware / biometric approval gate** for any agent runner,
+sandbox, or CLI. It does one thing:
 
 > get a hardware or biometric **yes** from a real person, and hand back a **signed proof** of it.
 
@@ -13,7 +13,7 @@ enough; richer methods (roaming FIDO2 keys, platform biometrics, or routing the
 decision over an external CLI) plug in through clean seams.
 
 > It **gates**, it does not **enforce.** human-gate proves a person approved; the
-> sandbox (nono, a container, interpose) provides the isolation.
+> sandbox (interpose, a container, nono, your own runner) provides the isolation.
 
 ## Library
 
@@ -57,13 +57,13 @@ Silent by default; nothing is printed unless you ask for logs.
 
 ```sh
 # gate a launch, then run the command on approval
-humangate start -- nono run claude
+humangate start -- claude --dangerously-skip-permissions
 
 # route the decision over another tool (e.g. the interpose CLI); exit 0 approves
 humangate start --method route --route "interpose request approve" -- claude
 
 # turn on logging (off by default)
-humangate start --logging on --log-file gate.log -- nono run claude
+humangate start --logging on --log-file gate.log -- docker run --rm my-agent
 
 # write the signed token, and verify one later
 humangate start --out approval.json -- nono run claude
@@ -78,19 +78,23 @@ token is accepted only if its signer is one of them. This is how a verifier (for
 example an interpose box) binds an approval to a specific enrolled person rather
 than trusting any self-describing key.
 
-## Wiring into nono
+## Wiring into a runner
 
-Two ways, standalone for **any** nono user:
+Two ways, standalone for **any** runner (interpose-sandbox, a container, nono,
+your own launcher):
 
-1. **Wrapper** (works today, needs nothing from nono) - gate the launch, then run
-   nono: `humangate start -- nono run <agent>`.
-2. **Hook** (preferred, if nono exposes an approval/event hook) - point nono at
-   `humangate start ...` as the approver. human-gate stays silent and signals its
-   decision by **exit code** (0 approve, non-zero refuse), so it drops into any
-   exec-style hook. Whether nono has such a hook is an open research item.
+1. **Wrapper** (works today, needs nothing from the runner) - gate the launch,
+   then exec it: `humangate start -- <runner> <agent>`.
+2. **Hook** (preferred, if the runner exposes an approval/event hook) - point the
+   runner at `humangate start ...` as the approver. human-gate stays silent and
+   signals its decision by **exit code** (0 approve, non-zero refuse), so it drops
+   into any exec-style hook.
 
-The `--method route` seam lets a nono setup **notify or route** the decision over
-the interpose CLI (or anything), without human-gate depending on interpose.
+The `--method route` seam lets a setup **notify or route** the decision over
+another CLI (for example the interpose CLI), without human-gate depending on it.
+
+See `examples/` for runnable wiring: `examples/interpose-sandbox/`,
+`examples/nono/`, and the dependency-free `examples/library/`.
 
 ## Approval methods
 
