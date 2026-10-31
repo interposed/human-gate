@@ -68,7 +68,15 @@ humangate start --logging on --log-file gate.log -- nono run claude
 # write the signed token, and verify one later
 humangate start --out approval.json -- nono run claude
 humangate verify approval.json
+
+# verify AND require the signer to be an enrolled key (bind approval to identity)
+humangate verify --authorized-keys keys.hex approval.json
 ```
+
+`--authorized-keys` takes a file of hex ed25519 public keys (one per line); the
+token is accepted only if its signer is one of them. This is how a verifier (for
+example an interpose box) binds an approval to a specific enrolled person rather
+than trusting any self-describing key.
 
 ## Wiring into nono
 
@@ -109,10 +117,26 @@ humangate register --label yubikey      # one-time: touch your key to enroll it
 humangate start --method fido2 -- nono run claude   # each launch: a silent tap
 ```
 
+`humangate register` prints the enrolled key's public half as hex, so a verifier
+can admit it (for example `interpose agents register-key <hex>` on an interpose
+box, or an `--authorized-keys` file).
+
 On approval the key signs `hash(approval)`; the assertion **is** the proof
 (`WebAuthn` in the token, `KeyID` = the credential's public key). `humangate verify`
 checks it offline against the enrolled public key. Ed25519 credentials are the
 primary path; ES256 is supported best-effort.
+
+## Examples
+
+Runnable examples live under `examples/`:
+
+| path | what |
+|---|---|
+| `examples/library/` | the smallest Go program: ask for approval, get a signed token |
+| `examples/nono/` | gate a [nono](https://nono.sh) launch (wrapper + hook) |
+| `examples/interpose-sandbox/` | gate an [interpose-sandbox](https://github.com/interposed/interpose-sandbox) launch; human-gate does not depend on it |
+| `examples/hardware-tap.sh` | end-to-end FIDO2 tap: build the bridge, enroll, approve, verify |
+| `examples/route-approver.sh` | the `--method route` seam: decide via an external command |
 
 ## Build
 
