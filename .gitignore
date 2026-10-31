@@ -3,7 +3,7 @@
 
 # release artifacts are retained locally per-version, but binaries are not
 # committed. The checksums file is the tracked release record.
-/builds/releases/*/biogate-*
+/builds/releases/*/humangate-*
 
 # private strategy / idea base, not for the public repo
 /brainstorming.md

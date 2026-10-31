@@ -8,7 +8,7 @@ import (
 
 	libfido2 "github.com/keys-pub/go-libfido2"
 
-	"github.com/interposed/nono-biogate/biogate/bridge"
+	"github.com/interposed/human-gate/humangate/bridge"
 )
 
 type fidoBackend struct{}
@@ -53,7 +53,10 @@ func (fidoBackend) register(req bridge.Request) ([]byte, []byte, int, error) {
 	_, _ = rand.Read(uid)
 	rp := libfido2.RelyingParty{ID: req.RPID, Name: req.RPName}
 	user := libfido2.User{ID: uid, Name: req.UserName, DisplayName: req.UserName}
-	opts := &libfido2.MakeCredentialOpts{RK: libfido2.True}
+	// Non-resident (non-discoverable) credential: we store and present the credential
+	// ID on assert, so we never need a resident key. Forcing RK made basic FIDO2 keys
+	// reject the request ("unsupported option"); omitting it works everywhere.
+	opts := &libfido2.MakeCredentialOpts{}
 
 	alg := req.Alg
 	if alg == 0 {

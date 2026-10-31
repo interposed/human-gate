@@ -8,12 +8,12 @@ COPY go.mod ./
 RUN go mod download || true
 COPY . .
 ARG VERSION=dev
-RUN go build -ldflags "-s -w -X main.version=${VERSION}" -o /out/biogate ./cmd/biogate
+RUN go build -ldflags "-s -w -X main.version=${VERSION}" -o /out/humangate ./cmd/humangate
 
 # ---- runtime (small, with a shell for `make docker-shell`) ----
 FROM alpine:3.20
-RUN adduser -D -u 10001 biogate
-COPY --from=build /out/biogate /usr/local/bin/biogate
-USER biogate
-ENTRYPOINT ["biogate"]
+RUN adduser -D -u 10001 humangate
+COPY --from=build /out/humangate /usr/local/bin/humangate
+USER humangate
+ENTRYPOINT ["humangate"]
 CMD ["version"]

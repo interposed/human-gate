@@ -1,5 +1,5 @@
-// Package bridge is the pure-Go wire protocol between the main biogate binary
-// and the biogate-fido-bridge helper. The helper owns the cgo/libfido2
+// Package bridge is the pure-Go wire protocol between the main humangate binary
+// and the humangate-fido-bridge helper. The helper owns the cgo/libfido2
 // dependency and USB CTAP2 access; the main binary stays pure-Go and talks to
 // it over a Unix-domain socket. One JSON object per line, request then response.
 package bridge
@@ -28,7 +28,7 @@ const (
 	AlgES256 = -7 // ECDSA P-256
 )
 
-// Request is sent from biogate to the bridge.
+// Request is sent from humangate to the bridge.
 type Request struct {
 	Op           Op     `json:"op"`
 	RPID         string `json:"rp_id,omitempty"`
@@ -79,12 +79,12 @@ func ReadMsg(r *bufio.Reader, v any) error {
 
 // DefaultSocketPath is where the bridge listens by default.
 func DefaultSocketPath() string {
-	if x := os.Getenv("BIOGATE_BRIDGE_SOCK"); x != "" {
+	if x := os.Getenv("HUMANGATE_BRIDGE_SOCK"); x != "" {
 		return x
 	}
 	if x := os.Getenv("XDG_RUNTIME_DIR"); x != "" {
-		return filepath.Join(x, "biogate-fido-bridge.sock")
+		return filepath.Join(x, "humangate-fido-bridge.sock")
 	}
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".config", "biogate", "bridge.sock")
+	return filepath.Join(home, ".config", "humangate", "bridge.sock")
 }

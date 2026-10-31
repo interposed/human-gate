@@ -1,4 +1,4 @@
-package biogate
+package humangate
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"time"
 
-	aauth "github.com/aauth-dev/auth-go"
+	aauth "github.com/aauth-dev/aauth-go"
 )
 
 // aauthSigner mints AAuth-native identity proof alongside the detached approval
@@ -15,14 +15,15 @@ import (
 // to an agent identity, and a detached signature over the approval payload.
 //
 // This is the dogfood path: the same identity layer the interpose broker
-// adopts. bio-gate exercises github.com/aauth-dev/auth-go in the open first.
+// adopts. human-gate exercises github.com/aauth-dev/aauth-go in the open first.
 type aauthSigner struct {
 	agent *aauth.Agent
-	keyID string // hex(pub); also the ApprovalToken.KeyID
+	priv  ed25519.PrivateKey // the signing key (aauth.Agent holds it as a crypto.Signer)
+	keyID string             // hex(pub); also the ApprovalToken.KeyID
 }
 
 // NewAAuthSigner builds a self-hosted AAuth agent from a persistent Ed25519 key
-// and an agent identifier such as "aauth:biogate@host". The one key signs both
+// and an agent identifier such as "aauth:humangate@host". The one key signs both
 // the approval payload and the aa-agent+jwt (it is the cnf.jwk).
 func NewAAuthSigner(identifier string, priv ed25519.PrivateKey) (Signer, error) {
 	id, err := aauth.ParseAgentIdentifier(identifier)
@@ -33,7 +34,11 @@ func NewAAuthSigner(identifier string, priv ed25519.PrivateKey) (Signer, error) 
 	if err != nil {
 		return nil, err
 	}
-	return &aauthSigner{agent: ag, keyID: hex.EncodeToString(ag.Pub)}, nil
+	pub, ok := priv.Public().(ed25519.PublicKey)
+	if !ok {
+		return nil, ErrBadToken
+	}
+	return &aauthSigner{agent: ag, priv: priv, keyID: hex.EncodeToString(pub)}, nil
 }
 
 func (s *aauthSigner) KeyID() string { return s.keyID }
@@ -58,7 +63,7 @@ func (s *aauthSigner) Sign(req Request, m Method, at time.Time) (*ApprovalToken,
 	if err != nil {
 		return nil, err
 	}
-	tok.Sig = base64Std(ed25519.Sign(s.agent.Priv, msg))
+	tok.Sig = base64Std(ed25519.Sign(s.priv, msg))
 	return tok, nil
 }
 
@@ -87,8 +92,14 @@ func VerifyIdentity(ctx context.Context, t *ApprovalToken) (*aauth.AgentClaims, 
 	if err != nil {
 		return nil, err
 	}
+	// aauth-go's JWK.PublicKey returns a crypto.PublicKey (Ed25519 or P-256);
+	// an approval key is always Ed25519, so assert it before the key comparison.
+	edPub, ok := tokPub.(ed25519.PublicKey)
+	if !ok {
+		return nil, ErrBadToken
+	}
 	pub, _ := hex.DecodeString(t.KeyID)
-	if !tokPub.Equal(ed25519.PublicKey(pub)) {
+	if !edPub.Equal(ed25519.PublicKey(pub)) {
 		return nil, ErrBadSignature
 	}
 	return claims, nil

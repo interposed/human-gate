@@ -1,4 +1,4 @@
-package biogate
+package humangate
 
 import (
 	"bytes"
@@ -10,11 +10,11 @@ import (
 
 // ExecApprover routes the decision to an external command. This is how a nono
 // setup can notify or route an approval over another tool (for example the
-// interpose CLI) without bio-gate taking a dependency on it. The command
-// receives the request as JSON on stdin and as BIOGATE_* environment variables,
+// interpose CLI) without human-gate taking a dependency on it. The command
+// receives the request as JSON on stdin and as HUMANGATE_* environment variables,
 // and signals its decision by exit code: 0 approves, non-zero refuses.
 //
-// The routed command owns its own UI. bio-gate itself stays silent.
+// The routed command owns its own UI. human-gate itself stays silent.
 type ExecApprover struct {
 	Name    Method   // method label this approver answers to (usually MethodRoute)
 	Command []string // argv, e.g. {"interpose", "request", "approve"}
@@ -23,7 +23,7 @@ type ExecApprover struct {
 }
 
 // NewExecApprover builds a router that shells out to argv. By default the routed
-// command's output is discarded, keeping bio-gate silent.
+// command's output is discarded, keeping human-gate silent.
 func NewExecApprover(method Method, argv ...string) ExecApprover {
 	return ExecApprover{Name: method, Command: argv}
 }
@@ -43,9 +43,9 @@ func (e ExecApprover) Approve(ctx context.Context, req Request) error {
 	payload, _ := json.Marshal(req)
 	cmd.Stdin = bytes.NewReader(payload)
 	cmd.Env = append(os.Environ(),
-		"BIOGATE_ACTION="+req.Action,
-		"BIOGATE_SUBJECT="+req.Subject,
-		"BIOGATE_DETAIL="+req.Detail,
+		"HUMANGATE_ACTION="+req.Action,
+		"HUMANGATE_SUBJECT="+req.Subject,
+		"HUMANGATE_DETAIL="+req.Detail,
 	)
 	// Only wire these when non-nil: assigning a nil *os.File to the io.Writer
 	// fields would make a non-nil interface over a nil pointer, and os/exec would

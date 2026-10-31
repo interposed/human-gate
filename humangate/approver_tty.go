@@ -1,4 +1,4 @@
-package biogate
+package humangate
 
 import (
 	"bufio"

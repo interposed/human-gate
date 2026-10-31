@@ -1,4 +1,4 @@
-package biogate
+package humangate
 
 import (
 	"encoding/json"
@@ -24,8 +24,8 @@ type KeyRegistry struct {
 	Keys []EnrolledKey `json:"keys"`
 }
 
-// ErrNoKeys means no hardware key is enrolled yet (run `biogate register`).
-var ErrNoKeys = errors.New("biogate: no hardware key enrolled (run: biogate register)")
+// ErrNoKeys means no hardware key is enrolled yet (run `humangate register`).
+var ErrNoKeys = errors.New("humangate: no hardware key enrolled (run: humangate register)")
 
 // LoadRegistry reads the registry, returning an empty one if the file is absent.
 func LoadRegistry(path string) (*KeyRegistry, error) {
@@ -80,8 +80,8 @@ func (r *KeyRegistry) FindByCredentialID(id []byte) *EnrolledKey {
 // DefaultRegistryPath is where enrolled keys live.
 func DefaultRegistryPath() string {
 	if x := os.Getenv("XDG_CONFIG_HOME"); x != "" {
-		return filepath.Join(x, "biogate", "keys.json")
+		return filepath.Join(x, "humangate", "keys.json")
 	}
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".config", "biogate", "keys.json")
+	return filepath.Join(home, ".config", "humangate", "keys.json")
 }

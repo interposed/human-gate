@@ -1,4 +1,4 @@
-package biogate
+package humangate
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/interposed/nono-biogate/biogate/bridge"
+	"github.com/interposed/human-gate/humangate/bridge"
 )
 
 // verifyWebAuthn checks a hardware-key ApprovalToken: the assertion's challenge
@@ -69,7 +69,30 @@ func verifyAssertion(alg int, pub, authData, clientHash, sig []byte) error {
 		return nil
 
 	default:
-		return errors.New("biogate: unsupported credential algorithm")
+		return errors.New("humangate: unsupported credential algorithm")
+	}
+}
+
+// webAuthnEd25519Key returns the EdDSA (Ed25519) credential public key carried
+// in a WebAuthn proof, using the same COSE alg vocabulary as verifyAssertion.
+// Only COSE alg -8 (EdDSA, bridge.AlgEdDSA) is a 32-byte ed25519 key; alg -7
+// (ES256, P-256) is a valid credential but cannot be an ed25519 authority key,
+// so it returns a clear error rather than a false match. Used by
+// ApprovalToken.SignerKey.
+func webAuthnEd25519Key(w *WebAuthnProof) (ed25519.PublicKey, error) {
+	if w == nil {
+		return nil, ErrBadToken
+	}
+	switch w.Alg {
+	case bridge.AlgEdDSA:
+		if len(w.PubKey) != ed25519.PublicKeySize {
+			return nil, ErrBadToken
+		}
+		return ed25519.PublicKey(append([]byte(nil), w.PubKey...)), nil
+	case bridge.AlgES256:
+		return nil, errors.New("humangate: unsupported key type for authorized-keys match (use an EdDSA/ed25519 key)")
+	default:
+		return nil, errors.New("humangate: unsupported credential algorithm")
 	}
 }
 

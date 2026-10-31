@@ -9,7 +9,7 @@ import (
 
 // ErrUnavailable means the bridge socket could not be reached. The caller can
 // treat this as "no hardware method available" and fall back or refuse.
-var ErrUnavailable = errors.New("biogate: fido bridge not reachable (start biogate-fido-bridge)")
+var ErrUnavailable = errors.New("humangate: fido bridge not reachable (start humangate-fido-bridge)")
 
 // Client is a connection to the bridge helper.
 type Client struct {

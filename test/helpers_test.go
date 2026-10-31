@@ -1,4 +1,4 @@
-package biogatetest
+package humangatetest
 
 import (
 	"bufio"
@@ -8,18 +8,18 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/interposed/nono-biogate/biogate"
-	"github.com/interposed/nono-biogate/biogate/bridge"
+	"github.com/interposed/human-gate/humangate"
+	"github.com/interposed/human-gate/humangate/bridge"
 )
 
 // mockApprover auto-approves (or returns err) under the "mock" method, so tests
 // can drive RequireApproval without any real ceremony.
 type mockApprover struct{ err error }
 
-func (m mockApprover) Method() biogate.Method                        { return biogate.Method("mock") }
-func (m mockApprover) Approve(context.Context, biogate.Request) error { return m.err }
+func (m mockApprover) Method() humangate.Method                        { return humangate.Method("mock") }
+func (m mockApprover) Approve(context.Context, humangate.Request) error { return m.err }
 
-// fakeBridge is an in-process stand-in for biogate-fido-bridge. It holds one
+// fakeBridge is an in-process stand-in for humangate-fido-bridge. It holds one
 // Ed25519 keypair and answers register/assert over a Unix socket exactly like
 // the real bridge, signing assertions in software so the fido2 path is testable
 // without hardware.

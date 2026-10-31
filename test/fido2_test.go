@@ -1,11 +1,11 @@
-package biogatetest
+package humangatetest
 
 import (
 	"context"
 	"testing"
 
-	"github.com/interposed/nono-biogate/biogate"
-	"github.com/interposed/nono-biogate/biogate/bridge"
+	"github.com/interposed/human-gate/humangate"
+	"github.com/interposed/human-gate/humangate/bridge"
 )
 
 // Exercises the whole hardware path end to end through the public API, against
@@ -15,47 +15,47 @@ import (
 func TestFIDO2EndToEnd(t *testing.T) {
 	fb := startFakeBridge(t)
 
-	// enroll (what `biogate register` does)
+	// enroll (what `humangate register` does)
 	rr, err := bridge.NewClient(fb.sock).Do(bridge.Request{
-		Op: bridge.OpRegister, RPID: biogate.DefaultRPID, UserName: "biogate", Alg: bridge.AlgEdDSA,
+		Op: bridge.OpRegister, RPID: humangate.DefaultRPID, UserName: "humangate", Alg: bridge.AlgEdDSA,
 	})
 	if err != nil {
 		t.Fatalf("register: %v", err)
 	}
-	reg := &biogate.KeyRegistry{}
-	reg.Add(biogate.EnrolledKey{
-		Label: "test", RPID: biogate.DefaultRPID,
+	reg := &humangate.KeyRegistry{}
+	reg.Add(humangate.EnrolledKey{
+		Label: "test", RPID: humangate.DefaultRPID,
 		CredentialID: rr.CredentialID, PubKey: rr.PubKey, Alg: rr.Alg,
 	})
 
 	// approve with the hardware method
-	ap := biogate.NewFIDO2Approver(fb.sock, reg)
-	tok, err := biogate.RequireApproval(context.Background(),
-		biogate.Request{Action: "invoke", Subject: "claude-code", Methods: []biogate.Method{biogate.MethodFIDO2}},
-		biogate.WithApprover(ap))
+	ap := humangate.NewFIDO2Approver(fb.sock, reg)
+	tok, err := humangate.RequireApproval(context.Background(),
+		humangate.Request{Action: "invoke", Subject: "claude-code", Methods: []humangate.Method{humangate.MethodFIDO2}},
+		humangate.WithApprover(ap))
 	if err != nil {
 		t.Fatalf("RequireApproval(fido2): %v", err)
 	}
 	if tok.WebAuthn == nil {
 		t.Fatal("expected a WebAuthn proof on the token")
 	}
-	if err := biogate.Verify(tok); err != nil {
+	if err := humangate.Verify(tok); err != nil {
 		t.Fatalf("verify: %v", err)
 	}
 
 	// the tap signed THIS approval: changing it must break verification
 	bad := *tok
 	bad.Subject = "evil"
-	if biogate.Verify(&bad) == nil {
+	if humangate.Verify(&bad) == nil {
 		t.Fatal("verify accepted an approval whose subject changed after the tap")
 	}
 }
 
 func TestFIDO2NoKeyEnrolled(t *testing.T) {
-	ap := biogate.NewFIDO2Approver("", &biogate.KeyRegistry{})
-	if _, err := biogate.RequireApproval(context.Background(),
-		biogate.Request{Action: "launch", Subject: "x", Methods: []biogate.Method{biogate.MethodFIDO2}},
-		biogate.WithApprover(ap)); err != biogate.ErrNoKeys {
+	ap := humangate.NewFIDO2Approver("", &humangate.KeyRegistry{})
+	if _, err := humangate.RequireApproval(context.Background(),
+		humangate.Request{Action: "launch", Subject: "x", Methods: []humangate.Method{humangate.MethodFIDO2}},
+		humangate.WithApprover(ap)); err != humangate.ErrNoKeys {
 		t.Fatalf("want ErrNoKeys, got %v", err)
 	}
 }
